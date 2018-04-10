@@ -1,11 +1,14 @@
 package com.jgardo.skypebot
 
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.runApplication
+import io.vertx.core.Vertx
 
-@SpringBootApplication
-class SkypebotApplication
+fun main(args : Array<String>) {
+    val vertx = Vertx.vertx()
+    val server = vertx.createHttpServer()
 
-fun main(args: Array<String>) {
-    runApplication<SkypebotApplication>(*args)
+    server.requestHandler({ req ->
+        req.response().end("Hello world")
+    })
+
+    server.listen(8080)
 }
