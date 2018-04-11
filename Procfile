@@ -1,1 +1,1 @@
-web: java -jar target/skypebot.jar
+web: java $JAVA_OPTS -Dserver.port=$PORT -jar target/skypebot.jar
