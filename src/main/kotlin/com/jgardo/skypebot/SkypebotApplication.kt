@@ -10,7 +10,7 @@ class SkypebotApplication : AbstractVerticle() {
         vertx
                 .createHttpServer()
                 .requestHandler(routes(vertx)::accept)
-                .listen(config().getInteger("server.port",8080)) { result ->
+                .listen(Integer.getInteger("server.port",8080)) { result ->
                     if (result.succeeded()) {
                         fut.complete()
                     } else {
