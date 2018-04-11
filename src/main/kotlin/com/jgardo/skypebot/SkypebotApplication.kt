@@ -37,7 +37,7 @@ class SkypebotApplication : AbstractVerticle() {
             ctx.response().end("<h1>Hello from my first " + "Vert.x 3 application</h1>")
         }
 
-        route.post("/notification/").handler { ctx ->
+        route.post("/notification/*").handler { ctx ->
             val body = ctx.bodyAsString
             val controller = injector.getInstance(NotificationController::class.java)
 
