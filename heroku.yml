@@ -1,0 +1,5 @@
+build:
+  languages:
+    - java
+run:
+  web: java -jar target/skypebot.jar
