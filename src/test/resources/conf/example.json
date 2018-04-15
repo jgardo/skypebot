@@ -1,0 +1,8 @@
+{
+  "_comment" : "Copy this file and save as config.json and fill properties values",
+  "authentication" : {
+    "_comment": "To configure this section follow this instruction: https://docs.microsoft.com/en-us/azure/bot-service/bot-service-quickstart-registration",
+    "clientId" : "<TO FILL - Bot Channels Registration password point 2 - field Application Id",
+    "clientSecret" : "<TO FILL - Bot Channels Registration password point 2 - field New Password Generated"
+  }
+}
