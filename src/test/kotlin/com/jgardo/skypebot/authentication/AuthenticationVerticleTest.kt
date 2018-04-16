@@ -33,7 +33,9 @@ class AuthenticationVerticleTest {
                 { ar ->
                     if (ar.succeeded()) {
                         vertx.eventBus().send("authenticate", "", {authenticationResult : AsyncResult<Message<String>> ->
-                            context.assertNotNull(vertx.sharedData().getLocalMap<String,String>("authentication")["accessToken"])
+                            val accessToken = vertx.sharedData().getLocalMap<String,String>("authentication")["accessToken"]
+                            context.assertNotNull(accessToken)
+                            println("Access token : $accessToken")
                             context.assertTrue(authenticationResult.succeeded())
                             async.complete()
                         })
