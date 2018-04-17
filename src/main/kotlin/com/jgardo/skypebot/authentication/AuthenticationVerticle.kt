@@ -13,9 +13,8 @@ class AuthenticationVerticle : AbstractVerticle() {
         val retriever = ConfigRetriever.create(vertx)
         retriever.getConfig({ ar ->
             val json = ar.result()
-            val authentication = json.getJsonObject("authentication")
-            val clientId = authentication.getString("clientId")
-            val clientSecret = authentication.getString("clientSecret")
+            val clientId = json.getString("authentication.clientId")
+            val clientSecret = json.getString("authentication.clientSecret")
             authenticationForm.set("grant_type", "client_credentials")
                     .set("client_id", clientId) //MICROSOFT-APP-ID
                     .set("client_secret", clientSecret) //MICROSOFT-APP-PASSWORD
@@ -24,6 +23,7 @@ class AuthenticationVerticle : AbstractVerticle() {
         })
         client = WebClient.create(vertx)
         vertx!!.eventBus().consumer("authenticate", this::authenticate)
+        vertx!!.eventBus().send("authenticate", "")
     }
 
     private fun authenticate(message:Message<String>) {

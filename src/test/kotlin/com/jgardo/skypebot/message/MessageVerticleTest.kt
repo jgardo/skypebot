@@ -42,9 +42,9 @@ class MessageVerticleTest {
                 vertx.deployVerticle(MessageVerticle::class.java.name,
                     { ar ->
                         if (ar.succeeded()) {
-                            val message = Message("test","test")
+                            val message = Message("test",null, "test")
 
-                            vertx.eventBus().send("send", Json.encode(message), { sendResult : AsyncResult<VertxMessage<Message>> ->
+                            vertx.eventBus().send(MessageBusEvent.SEND.eventName, Json.encode(message), { sendResult : AsyncResult<VertxMessage<Message>> ->
                                 context.assertTrue(sendResult.succeeded())
                                 async.complete()
                             })
