@@ -8,9 +8,13 @@ import io.vertx.ext.web.codec.BodyCodec
 import com.jgardo.skypebot.message.model.Message
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
+import io.vertx.core.logging.LoggerFactory
 import java.util.stream.Collectors
 
 class MessageVerticle : AbstractVerticle() {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     private lateinit var client : WebClient
 
     private lateinit var receiversByName : Map<String, Any>
@@ -27,6 +31,17 @@ class MessageVerticle : AbstractVerticle() {
             receiversByName = json.fieldNames().stream()
                     .filter { name -> name.startsWith("receiver") }
                     .collect(Collectors.toMap({a -> a.substring("receiver.".length)}, {key -> json.getString(key)}))
+
+            if (logger.isDebugEnabled) {
+                val sb = StringBuilder()
+                        .appendln("Properties for sending messages:")
+                        .appendln("appid: $appId")
+                        .appendln("baseUrl: $baseUrl")
+                        .appendln("receivers: ${receiversByName}")
+
+                logger.debug(sb.toString())
+            }
+
             fut.complete()
         })
         client = WebClient.create(vertx)
@@ -40,6 +55,19 @@ class MessageVerticle : AbstractVerticle() {
 
         val accessToken = vertx.sharedData().getLocalMap<String,String>("authentication")["accessToken"]
 
+        if (accessToken == null) {
+            logger.error("Access token is null")
+            return
+        }
+
+        if (logger.isDebugEnabled) {
+            val sb = StringBuilder()
+                    .appendln("Sending message:")
+                    .appendln("message: ${body.message}")
+                    .appendln("conversation: $conversationId")
+            logger.debug(sb.toString())
+        }
+
         val json = JsonObject()
         json.put("text", body.message)
                 .put("textFormat", "plain")
@@ -50,9 +78,15 @@ class MessageVerticle : AbstractVerticle() {
                 .putHeader("Authorization", "Bearer $accessToken")
                 .putHeader("Content-Type","application/json")
                 .sendJson(json, {ar ->
-                    val result = ar.result()
-                    val json = result.body()
-                    println(json.getString("id"))
+                    if (ar.succeeded()) {
+                        if (logger.isDebugEnabled) {
+                            val result = ar.result()
+                            val json = result.body()
+                            logger.debug("Success! MessageId: ${json.getString("id")}")
+                        }
+                    } else {
+                        logger.error("Message sending failure.", ar.cause())
+                    }
                 })
     }
 }
