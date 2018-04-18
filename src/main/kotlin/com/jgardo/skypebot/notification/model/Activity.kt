@@ -7,7 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Activity @JsonCreator constructor(
         @JsonProperty("action") val action : String?,
-        @JsonProperty("membersAdded") val membersAdded : List<Identificator>,
+        @JsonProperty("membersAdded") val membersAdded : List<Identificator> = ArrayList(),
+        @JsonProperty("membersRemoved") val membersRemoved : List<Identificator> = ArrayList(),
         @JsonProperty("type") val type : String,
         @JsonProperty("timestamp") val timestamp : String,
         @JsonProperty("id") val id : String,
