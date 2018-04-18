@@ -7,8 +7,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Activity @JsonCreator constructor(
         @JsonProperty("action") val action : String?,
-        @JsonProperty("membersAdded") val membersAdded : List<Identificator> = ArrayList(),
-        @JsonProperty("membersRemoved") val membersRemoved : List<Identificator> = ArrayList(),
+        @JsonProperty("membersAdded") val membersAdded : List<Identificator>? = null,
+        @JsonProperty("membersRemoved") val membersRemoved : List<Identificator>? = null,
         @JsonProperty("type") val type : String,
         @JsonProperty("timestamp") val timestamp : String,
         @JsonProperty("id") val id : String,
@@ -19,6 +19,4 @@ data class Activity @JsonCreator constructor(
         @JsonProperty("text") val text : String?,
         @JsonProperty("textFormat") val textFormat : String?,
         @JsonProperty("recipient") val recipient : Identificator
-
-
 )
