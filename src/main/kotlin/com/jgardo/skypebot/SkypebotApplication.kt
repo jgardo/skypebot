@@ -8,6 +8,7 @@ import com.jgardo.skypebot.message.MessageBusEvent
 import com.jgardo.skypebot.message.MessageVerticle
 import com.jgardo.skypebot.notification.NotificationController
 import com.jgardo.skypebot.notification.NotificationModule
+import io.vertx.config.ConfigRetriever
 import io.vertx.core.Vertx
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.AsyncResult
@@ -28,18 +29,33 @@ class SkypebotApplication : AbstractVerticle() {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun start(fut: Future<Void>) {
-        vertx
-                .createHttpServer()
-                .requestHandler(routes(vertx)::accept)
-                .listen(Integer.getInteger("server.port",8080)) { result ->
-                    if (result.succeeded()) {
-                        logger.info("Http listener startup completed")
-                        fut.complete()
-                    } else {
-                        logger.error("Http listener startup failed", result.cause())
-                        fut.fail(result.cause())
-                    }
+        val config = ConfigRetriever.create(vertx)
+        config.getConfig({ ar ->
+            if (ar.succeeded()) {
+                try {
+                    val port = ar.result().getInteger("server.port")?: 8080
+                    vertx
+                            .createHttpServer()
+                            .requestHandler(routes(vertx)::accept)
+                            .listen(port) { result ->
+                                if (result.succeeded()) {
+                                    logger.info("Http listener startup completed")
+                                    fut.complete()
+                                } else {
+                                    logger.error("Http listener startup failed", result.cause())
+                                    fut.fail(result.cause())
+                                }
+                            }
+                } catch (e : RuntimeException) {
+                    logger.error("Error", e)
+                    fut.fail(ar.cause())
                 }
+            } else {
+                logger.error("Config error", ar.cause())
+                fut.fail(ar.cause())
+            }
+
+        })
     }
 
     private fun routes(vertx:Vertx) : Router {
@@ -83,6 +99,14 @@ fun main(args : Array<String>) {
             logger.error("Problem occurs when verticle $name starts.", ar.cause())
         }
     }
+    val retriever = ConfigRetriever.create(vertx)
+    retriever.getConfig({ar ->
+        if (ar.succeeded()) {
+            logger.debug("All config: ${ar.result().encodePrettily()}")
+        } else {
+            logger.error("Problem with getting config.")
+        }
+    })
 
     vertx.deployVerticle(MessageVerticle(), {ar -> logStarted("MessageVerticle", ar)})
     vertx.deployVerticle(SkypebotApplication(), {ar -> logStarted("SkypebotApplication", ar)})

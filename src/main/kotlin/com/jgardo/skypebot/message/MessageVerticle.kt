@@ -24,25 +24,35 @@ class MessageVerticle : AbstractVerticle() {
     override fun start(fut : Future<Void>) {
         val retriever = ConfigRetriever.create(vertx)
         retriever.getConfig({ ar ->
-            val json = ar.result()
-            appId = json.getString("appid")!!
-            baseUrl = json.getString("baseurl")!!
+            try {
+                if (ar.succeeded()) {
+                    val json = ar.result()
+                    appId = json.getString("appid")!!
+                    baseUrl = json.getString("baseurl")!!
 
-            receiversByName = json.fieldNames().stream()
-                    .filter { name -> name.startsWith("receiver") }
-                    .collect(Collectors.toMap({a -> a.substring("receiver.".length)}, {key -> json.getString(key)}))
+                    receiversByName = json.fieldNames().stream()
+                            .filter { name -> name.startsWith("receiver") }
+                            .collect(Collectors.toMap({a -> a.substring("receiver.".length)}, {key -> json.getString(key)}))
 
-            if (logger.isDebugEnabled) {
-                val sb = StringBuilder()
-                        .appendln("Properties for sending messages:")
-                        .appendln("appid: $appId")
-                        .appendln("baseUrl: $baseUrl")
-                        .appendln("receivers: ${receiversByName}")
+                    if (logger.isDebugEnabled) {
+                        val sb = StringBuilder()
+                                .appendln("Properties for sending messages:")
+                                .appendln("appid: $appId")
+                                .appendln("baseUrl: $baseUrl")
+                                .appendln("receivers: ${receiversByName}")
 
-                logger.debug(sb.toString())
+                        logger.debug(sb.toString())
+                    }
+                    fut.complete()
+                } else {
+                    val e = ar.cause()
+                    logger.error("Startup error.", e)
+                    fut.fail(e)
+                }
+            } catch (e : RuntimeException) {
+                logger.error("Startup error", e)
+                fut.fail(e)
             }
-
-            fut.complete()
         })
         client = WebClient.create(vertx)
         vertx!!.eventBus().consumer(MessageBusEvent.SEND.eventName, this::send)

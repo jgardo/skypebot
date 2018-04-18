@@ -16,21 +16,31 @@ class AuthenticationVerticle : AbstractVerticle() {
     override fun start(fut : Future<Void>) {
         val retriever = ConfigRetriever.create(vertx)
         retriever.getConfig({ ar ->
-            val json = ar.result()
-            val clientId = json.getString("authentication.clientId")
-            val clientSecret = json.getString("authentication.clientSecret")
-            authenticationForm.set("grant_type", "client_credentials")
-                    .set("client_id", clientId) //MICROSOFT-APP-ID
-                    .set("client_secret", clientSecret) //MICROSOFT-APP-PASSWORD
-                    .set("scope", "https://api.botframework.com/.default")
-            fut.complete()
-
-            if (logger.isDebugEnabled) {
-                val sb = StringBuilder()
-                        .appendln("Authentication properties:")
-                        .appendln("clientId: ${clientId.substring(0,5)}")
-                        .appendln("clientSecret: ${clientSecret.substring(0,5)}")
-                logger.debug(sb.toString())
+            try {
+                if (ar.succeeded()) {
+                    val json = ar.result()
+                    val clientId = json.getString("authentication.clientId")
+                    val clientSecret = json.getString("authentication.clientSecret")
+                    authenticationForm.set("grant_type", "client_credentials")
+                            .set("client_id", clientId) //MICROSOFT-APP-ID
+                            .set("client_secret", clientSecret) //MICROSOFT-APP-PASSWORD
+                            .set("scope", "https://api.botframework.com/.default")
+                    if (logger.isDebugEnabled) {
+                        val sb = StringBuilder()
+                                .appendln("Authentication properties:")
+                                .appendln("clientId: ${clientId.substring(0,5)}")
+                                .appendln("clientSecret: ${clientSecret.substring(0,5)}")
+                        logger.debug(sb.toString())
+                    }
+                    fut.complete()
+                } else {
+                    val e = ar.cause()
+                    logger.error("Startup error.", e)
+                    fut.fail(e)
+                }
+            } catch (e : RuntimeException) {
+                logger.error("Startup error.", e)
+                fut.fail(e)
             }
 
         })

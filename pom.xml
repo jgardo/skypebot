@@ -122,8 +122,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>io.vertx.core.Starter</Main-Class>
-                                        <Main-Verticle>com.jgardo.skypebot.SkypebotApplication</Main-Verticle>
+                                        <Main-Class>com.jgardo.skypebot.SkypebotApplicationKt</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
