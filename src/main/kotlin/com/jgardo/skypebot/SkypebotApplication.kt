@@ -58,9 +58,9 @@ class SkypebotApplication : AbstractVerticle() {
 
         route.route("/notification/*").handler { ctx ->
             val body = ctx.bodyAsJson
-            val controller = injector.getInstance(NotificationController::class.java)
 
-            controller.notify(body)
+            logger.info(body.encodePrettily())
+
             ctx.response().end("<h1>Notified!</h1>")
         }
 
