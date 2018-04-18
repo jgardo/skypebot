@@ -6,8 +6,10 @@ import com.google.inject.Injector
 import com.jgardo.skypebot.authentication.AuthenticationVerticle
 import com.jgardo.skypebot.message.MessageBusEvent
 import com.jgardo.skypebot.message.MessageVerticle
+import com.jgardo.skypebot.message.model.Message
 import com.jgardo.skypebot.notification.NotificationController
 import com.jgardo.skypebot.notification.NotificationModule
+import com.jgardo.skypebot.notification.model.Activity
 import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.Vertx
@@ -30,11 +32,15 @@ class SkypebotApplication : AbstractVerticle() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    private lateinit var appId : String
+
     override fun start(fut: Future<Void>) {
         val config = ConfigRetriever.create(vertx)
         config.getConfig({ ar ->
             VertxUtils.wrap(ar, { json ->
                 val port = json.getInteger("server.port")?: 8080
+                appId = json.getString(Config.APP_ID.configName)!!
+
                 vertx
                         .createHttpServer()
                         .requestHandler(routes(vertx)::accept)
@@ -60,6 +66,17 @@ class SkypebotApplication : AbstractVerticle() {
             val body = ctx.bodyAsJson
 
             logger.info(body.encodePrettily())
+
+            val activity = body.mapTo(Activity::class.java)
+
+            if (activity.type == "conversationUpdate"
+                    && activity.membersAdded.isNotEmpty() && activity.membersAdded.first().id == appId) {
+                val conversationId = activity.conversation.id
+                val text = "Hi, this conversation id is: \"$conversationId\""
+                val message = Message(conversationId = conversationId, message=text)
+
+                vertx.eventBus().send(MessageBusEvent.SEND.eventName, Json.encode(message))
+            }
 
             ctx.response().end("<h1>Notified!</h1>")
         }
