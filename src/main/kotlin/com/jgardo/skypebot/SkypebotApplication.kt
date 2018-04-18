@@ -8,12 +8,14 @@ import com.jgardo.skypebot.message.MessageBusEvent
 import com.jgardo.skypebot.message.MessageVerticle
 import com.jgardo.skypebot.notification.NotificationController
 import com.jgardo.skypebot.notification.NotificationModule
+import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.Vertx
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.AsyncResult
 import io.vertx.core.Future
 import io.vertx.core.json.Json
+import io.vertx.core.logging.Logger
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 
@@ -31,30 +33,19 @@ class SkypebotApplication : AbstractVerticle() {
     override fun start(fut: Future<Void>) {
         val config = ConfigRetriever.create(vertx)
         config.getConfig({ ar ->
-            if (ar.succeeded()) {
-                try {
-                    val port = ar.result().getInteger("server.port")?: 8080
-                    vertx
-                            .createHttpServer()
-                            .requestHandler(routes(vertx)::accept)
-                            .listen(port) { result ->
-                                if (result.succeeded()) {
-                                    logger.info("Http listener startup completed")
-                                    fut.complete()
-                                } else {
-                                    logger.error("Http listener startup failed", result.cause())
-                                    fut.fail(result.cause())
-                                }
-                            }
-                } catch (e : RuntimeException) {
-                    logger.error("Error", e)
-                    fut.fail(ar.cause())
-                }
-            } else {
-                logger.error("Config error", ar.cause())
-                fut.fail(ar.cause())
-            }
-
+            VertxUtils.wrap(ar, { json ->
+                val port = json.getInteger("server.port")?: 8080
+                vertx
+                        .createHttpServer()
+                        .requestHandler(routes(vertx)::accept)
+                        .listen(port) { res -> VertxUtils.wrap(res, { _ ->
+                            logger.info("Http listener startup completed")
+                            fut.complete()
+                        },{ th ->
+                            logger.error("Http listener startup failed", th)
+                                fut.fail(th)
+                        })}
+            })
         })
     }
 
@@ -88,27 +79,44 @@ class SkypebotApplication : AbstractVerticle() {
 fun main(args : Array<String>) {
     System.setProperty(LOGGER_DELEGATE_FACTORY_CLASS_NAME, SLF4JLogDelegateFactory::class.java.name)
 
-    val vertx = Vertx.vertx()
+    val vertx = Vertx.vertx()!!
 
     val logger = LoggerFactory.getLogger(SkypebotApplication::class.java)
+    logAllPropertiesIfDebug(logger, vertx)
 
     fun logStarted(name : String, ar:AsyncResult<String>) {
-        if (ar.succeeded()) {
-            logger.info("Verticle $name started.")
-        } else {
-            logger.error("Problem occurs when verticle $name starts.", ar.cause())
-        }
+        VertxUtils.wrap(ar, {logger.info("Verticle $name started.")})
     }
-    val retriever = ConfigRetriever.create(vertx)
-    retriever.getConfig({ar ->
-        if (ar.succeeded()) {
-            logger.debug("All config: ${ar.result().encodePrettily()}")
-        } else {
-            logger.error("Problem with getting config.")
-        }
-    })
 
     vertx.deployVerticle(MessageVerticle(), {ar -> logStarted("MessageVerticle", ar)})
     vertx.deployVerticle(SkypebotApplication(), {ar -> logStarted("SkypebotApplication", ar)})
     vertx.deployVerticle(AuthenticationVerticle(), {ar -> logStarted("AuthenticationVerticle", ar)})
+}
+
+private fun logAllPropertiesIfDebug(logger: Logger, vertx: Vertx) {
+    if (logger.isDebugEnabled) {
+        val retriever = ConfigRetriever.create(vertx)
+        retriever.getConfig({ ar ->
+            VertxUtils.wrap(ar, { json ->
+                val res = json.map
+                val shortened = res.mapValues { (key,value) ->
+                    when {
+                        Config.values()
+                                .filter { e -> e.sensitive }
+                                .map { e -> e.configName }
+                                .contains(key) -> return@mapValues VertxUtils.shortenSensitiveString(value as String)
+                        key.startsWith("receiver") -> return@mapValues VertxUtils.shortenSensitiveString(value as String)
+                        else -> return@mapValues value
+                    }
+                }
+                val sb = StringBuilder()
+                shortened.map { (key, value) -> return@map "$key=$value" }
+                        .forEach { str -> sb.appendln(str) }
+
+                logger.debug("All configs:\n\n$sb")
+            }, { e ->
+                logger.error("Problem with getting config.",e)
+            })
+        })
+    }
 }

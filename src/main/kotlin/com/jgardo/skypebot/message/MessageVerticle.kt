@@ -1,11 +1,13 @@
 package com.jgardo.skypebot.message
 
+import com.jgardo.skypebot.Config
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.*
 import io.vertx.core.eventbus.Message as VertxMessage
 import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.codec.BodyCodec
 import com.jgardo.skypebot.message.model.Message
+import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.core.json.Json
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
@@ -17,45 +19,46 @@ class MessageVerticle : AbstractVerticle() {
 
     private lateinit var client : WebClient
 
-    private lateinit var receiversByName : Map<String, Any>
+    private lateinit var receiversByName : Map<String, String>
     private lateinit var appId : String
     private lateinit var baseUrl : String
 
     override fun start(fut : Future<Void>) {
         val retriever = ConfigRetriever.create(vertx)
-        retriever.getConfig({ ar ->
-            try {
-                if (ar.succeeded()) {
-                    val json = ar.result()
-                    appId = json.getString("appid")!!
-                    baseUrl = json.getString("baseurl")!!
-
-                    receiversByName = json.fieldNames().stream()
-                            .filter { name -> name.startsWith("receiver") }
-                            .collect(Collectors.toMap({a -> a.substring("receiver.".length)}, {key -> json.getString(key)}))
-
-                    if (logger.isDebugEnabled) {
-                        val sb = StringBuilder()
-                                .appendln("Properties for sending messages:")
-                                .appendln("appid: $appId")
-                                .appendln("baseUrl: $baseUrl")
-                                .appendln("receivers: ${receiversByName}")
-
-                        logger.debug(sb.toString())
-                    }
-                    fut.complete()
-                } else {
-                    val e = ar.cause()
-                    logger.error("Startup error.", e)
-                    fut.fail(e)
-                }
-            } catch (e : RuntimeException) {
-                logger.error("Startup error", e)
-                fut.fail(e)
-            }
-        })
+        initializeConfig(retriever, fut)
         client = WebClient.create(vertx)
         vertx!!.eventBus().consumer(MessageBusEvent.SEND.eventName, this::send)
+    }
+
+    private fun initializeConfig(retriever: ConfigRetriever, fut: Future<Void>) {
+        retriever.getConfig({ ar ->
+            VertxUtils.wrap(ar, { json ->
+                appId = json.getString(Config.APP_ID.configName)!!
+                baseUrl = json.getString(Config.BASE_URL.configName)!!
+
+                receiversByName = json.fieldNames().stream()
+                        .filter { name -> name.startsWith("receiver") }
+                        .collect(Collectors.toMap({ a -> a.substring("receiver.".length) }, { key -> json.getString(key) }))
+                logOnStartup()
+                fut.complete()
+            }, { e ->
+                fut.fail(e)
+            })
+        })
+    }
+
+    private fun logOnStartup() {
+        if (logger.isDebugEnabled) {
+            val sb = StringBuilder()
+                    .appendln("Properties for sending messages:")
+                    .appendln("appid: ${VertxUtils.shortenSensitiveString(appId)}")
+                    .appendln("baseUrl: ${VertxUtils.shortenSensitiveString(baseUrl)}")
+
+            logger.debug(sb.toString())
+
+        }
+        val shortenedRegisteredReceivers = receiversByName.mapValues { (_, v: String) -> VertxUtils.shortenSensitiveString(v) }
+        logger.info("Registered receivers:$shortenedRegisteredReceivers")
     }
 
     private fun send(message:VertxMessage<String>) {
@@ -78,20 +81,20 @@ class MessageVerticle : AbstractVerticle() {
             logger.debug(sb.toString())
         }
 
-        val json = JsonObject()
-        json.put("text", body.message)
+        val requestJson = JsonObject()
+                .put("text", body.message)
                 .put("textFormat", "plain")
                 .put("type", "message")
                 .put("from", JsonObject().put("id",appId))
                 .put("conversation", JsonObject().put("id",conversationId))
+
         client.postAbs("${baseUrl}v3/conversations/$conversationId/activities").`as`(BodyCodec.jsonObject())
                 .putHeader("Authorization", "Bearer $accessToken")
                 .putHeader("Content-Type","application/json")
-                .sendJson(json, {ar ->
+                .sendJson(requestJson, {ar ->
                     if (ar.succeeded()) {
                         if (logger.isDebugEnabled) {
-                            val result = ar.result()
-                            val json = result.body()
+                            val json = ar.result().body()
                             logger.debug("Success! MessageId: ${json.getString("id")}")
                         }
                     } else {
