@@ -5,6 +5,7 @@ import com.jgardo.skypebot.server.BaseRoute
 import com.jgardo.skypebot.message.model.Message
 import com.jgardo.skypebot.notification.model.Activity
 import com.jgardo.skypebot.util.TextTranslator
+import io.jsonwebtoken.Jwts
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.MessageProducer
 import io.vertx.core.logging.LoggerFactory
@@ -19,9 +20,17 @@ class NotificationRoute(private val appId : String,
     override fun configure(router: Router, vertx: Vertx) {
         val injector = Guice.createInjector(NotificationModule(appId, messageSender, textTranslator))
 
+        vertx.createHttpClient()
+
         router.post("/notification/*")
                 .configureRestRoutingWithBody()
                 .handler { ctx ->
+
+                    val authorization = ctx.request().getHeader("Authorization")?: "not available"
+                    logger.info("Authorization header: $authorization")
+
+                    Jwts.parser()
+
                     val body = ctx.bodyAsJson
 
                     if (logger.isDebugEnabled) {
