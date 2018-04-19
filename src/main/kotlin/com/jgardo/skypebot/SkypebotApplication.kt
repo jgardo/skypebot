@@ -4,6 +4,7 @@ import com.jgardo.skypebot.authentication.AuthenticationVerticle
 import com.jgardo.skypebot.config.Config
 import com.jgardo.skypebot.message.MessageVerticle
 import com.jgardo.skypebot.server.ServerVerticle
+import com.jgardo.skypebot.util.TextTranslator
 import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.AsyncResult
@@ -27,8 +28,12 @@ fun main(args : Array<String>) {
         VertxUtils.wrap(ar, {logger.info("Verticle $name started.")})
     }
 
+    val messageTranslator = TextTranslator()
+    val retriever = ConfigRetriever.create(vertx)
+    retriever.getConfig(messageTranslator)
+
     vertx.deployVerticle(MessageVerticle(), {ar -> logStarted("MessageVerticle", ar)})
-    vertx.deployVerticle(ServerVerticle(), { ar -> logStarted("ServerVerticle", ar)})
+    vertx.deployVerticle(ServerVerticle(messageTranslator), { ar -> logStarted("ServerVerticle", ar)})
     vertx.deployVerticle(AuthenticationVerticle(), {ar -> logStarted("AuthenticationVerticle", ar)})
 }
 

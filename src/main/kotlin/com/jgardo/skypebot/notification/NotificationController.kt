@@ -2,12 +2,16 @@ package com.jgardo.skypebot.notification
 
 import com.jgardo.skypebot.message.model.Message
 import com.jgardo.skypebot.notification.model.Activity
+import com.jgardo.skypebot.util.TextTranslator
 import io.vertx.core.eventbus.MessageProducer
 import io.vertx.core.logging.LoggerFactory
 import javax.inject.Inject
 import javax.inject.Named
 
-class NotificationController @Inject constructor(@Named("appId") private val appId : String, @Named("messageSender")private val messageSender: MessageProducer<Message>) {
+class NotificationController @Inject constructor(
+        @Named("appId") private val appId : String,
+        @Named("messageSender") private val messageSender: MessageProducer<Message>,
+        private val textTranslator: TextTranslator) {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -15,7 +19,7 @@ class NotificationController @Inject constructor(@Named("appId") private val app
         if (activity.type == "conversationUpdate"
                 && activity.membersAdded != null && activity.membersAdded.isNotEmpty() && activity.membersAdded.first().id == appId) {
             val conversationId = activity.conversation.id
-            val text = "Hi, this conversation id is: \"$conversationId\""
+            val text = textTranslator.translate(com.jgardo.skypebot.config.Text.BOTS_INVITATION_ON_GROUP, hashMapOf("conversationId" to conversationId))
             val message = Message(conversationId = conversationId, message = text)
 
             messageSender.send(message)
