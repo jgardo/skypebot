@@ -1,5 +1,6 @@
 package com.jgardo.skypebot.util
 
+import com.jgardo.skypebot.config.Config
 import io.vertx.core.AsyncResult
 import io.vertx.core.logging.LoggerFactory
 
@@ -29,5 +30,9 @@ object VertxUtils {
         } else {
             "null"
         }
+    }
+
+    fun missingConfig(config : Config) : String {
+        throw IllegalStateException("Config property is missing: \"${config.configName}\"")
     }
 }

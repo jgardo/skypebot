@@ -1,6 +1,6 @@
 package com.jgardo.skypebot.authentication
 
-import com.jgardo.skypebot.Config
+import com.jgardo.skypebot.config.Config
 import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.*
@@ -20,8 +20,8 @@ class AuthenticationVerticle : AbstractVerticle() {
         retriever.getConfig({ ar ->
             VertxUtils.wrap(ar, {
             json ->
-                val clientId = json.getString(Config.AUTHENTICATION_CLIENT_ID.configName)
-                val clientSecret = json.getString(Config.AUTHENTICATION_CLIENT_SECRET.configName)
+                val clientId = json.getString(Config.AUTHENTICATION_CLIENT_ID.configName)?: VertxUtils.missingConfig(Config.AUTHENTICATION_CLIENT_ID)
+                val clientSecret = json.getString(Config.AUTHENTICATION_CLIENT_SECRET.configName)?: VertxUtils.missingConfig(Config.AUTHENTICATION_CLIENT_SECRET)
                 authenticationForm.set("grant_type", "client_credentials")
                         .set("client_id", clientId) //MICROSOFT-APP-ID
                         .set("client_secret", clientSecret) //MICROSOFT-APP-PASSWORD
