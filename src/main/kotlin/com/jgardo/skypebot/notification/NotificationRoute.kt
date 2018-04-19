@@ -1,5 +1,6 @@
 package com.jgardo.skypebot.notification
 
+import com.google.inject.Guice
 import com.jgardo.skypebot.server.BaseRoute
 import com.jgardo.skypebot.message.model.Message
 import com.jgardo.skypebot.notification.model.Activity
@@ -13,23 +14,23 @@ class NotificationRoute(private val appId : String, private val messageSender: M
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun configure(router: Router, vertx: Vertx) {
+        val injector = Guice.createInjector(NotificationModule(appId, messageSender))
+
         router.post("/notification/*")
                 .configureRestRoutingWithBody()
                 .handler { ctx ->
                     val body = ctx.bodyAsJson
 
-                    logger.info(body.encodePrettily())
+                    if (logger.isDebugEnabled) {
+                        logger.debug(body.encodePrettily())
+                    } else {
+                        logger.info(body.encodePrettily())
+                    }
 
                     val activity = body.mapTo(Activity::class.java)
+                    val notificationController = injector.getInstance(NotificationController::class.java)
 
-                    if (activity.type == "conversationUpdate"
-                            && activity.membersAdded != null && activity.membersAdded.isNotEmpty() && activity.membersAdded.first().id == appId) {
-                        val conversationId = activity.conversation.id
-                        val text = "Hi, this conversation id is: \"$conversationId\""
-                        val message = Message(conversationId = conversationId, message = text)
-
-                        messageSender.send(message)
-                    }
+                    notificationController.notify(activity)
 
                     ctx.response().end("<h1>Notified!</h1>")
                 }
