@@ -22,7 +22,7 @@ class NotificationRoute(private val appId : String,
         val injector = Guice.createInjector(NotificationModule(appId, messageSender, textTranslator))
 
         val webClient : WebClient = WebClient.create(vertx)
-        val authorizator: NotificationAuthorizator = NotificationAuthorizator(webClient)
+        val authorizator = NotificationAuthorizator(webClient)
 
         router.post("/notification/*")
                 .configureRestRoutingWithBody()
@@ -48,7 +48,8 @@ class NotificationRoute(private val appId : String,
                             return@compose Future.succeededFuture<Void>()
                         } else {
                             ctx.response()
-                                    .end("<h1>Not authorized!</h1>")
+                                    .setStatusCode(401)
+                                    .end("<h1>Unauthorized!</h1>")
                             return@compose Future.succeededFuture<Void>()
                         }
                     }
