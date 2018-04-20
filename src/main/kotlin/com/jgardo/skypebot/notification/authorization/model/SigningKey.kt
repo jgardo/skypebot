@@ -11,8 +11,9 @@ data class SigningKey @JsonCreator constructor(
         @JsonProperty("kid") val kid : String,
         @JsonProperty("x5t") val x5t : String,
         @JsonProperty("n") val n : String,
+        @JsonProperty("e") val e : String,
         @JsonProperty("x5c") val x5c : List<String>,
-        @JsonProperty("endorsements") val endorsements : List<String>
+        @JsonProperty("endorsements") val endorsements : List<String>?
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

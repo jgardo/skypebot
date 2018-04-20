@@ -23,7 +23,8 @@
 		<vertx.version>3.5.1</vertx.version>
         <guice.version>4.2.0</guice.version>
         <logback.version>1.2.1</logback.version>
-        <jjwt.version>0.9.0</jjwt.version>
+        <nimbusJoseJwt.version>5.8</nimbusJoseJwt.version>
+        <guava.version>24.1-jre</guava.version>
         <junit.version>4.12</junit.version>
 	</properties>
 
@@ -59,14 +60,19 @@
             <version>${guice.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>${jjwt.version}</version>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbusJoseJwt.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
