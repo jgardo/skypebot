@@ -5,13 +5,12 @@ import io.vertx.core.AsyncResult
 import io.vertx.core.Handler
 import io.vertx.core.json.JsonObject
 
-class TextTranslator : Handler<AsyncResult<JsonObject>> {
+class TextTranslator  {
+    val configHandler : Handler<AsyncResult<JsonObject>> = Handler {
+        ar -> config = ar.result()
+    }
 
     lateinit var config :JsonObject
-
-    override fun handle(ar: AsyncResult<JsonObject>) {
-        config = ar.result()
-    }
 
     fun translate(text: Text) : String{
         return translate(text, HashMap())

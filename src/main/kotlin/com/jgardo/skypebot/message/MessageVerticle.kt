@@ -13,7 +13,7 @@ import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
 import java.util.stream.Collectors
 
-class MessageVerticle : AbstractVerticle() {
+class MessageVerticle(private val messageAuthenticator: MessageAuthenticator) : AbstractVerticle() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -69,28 +69,31 @@ class MessageVerticle : AbstractVerticle() {
     private fun send(message:VertxMessage<Message>) {
         val body = message.body()
         val conversationId: String = getConversationId(body, body.receiver)
-        val accessToken = getAccessToken()
-        if (accessToken == null) {
-            logger.error("Access token is null")
-            return
-        }
+        val accessTokenFuture = messageAuthenticator.getAccessToken()
 
-        logMessage(body, conversationId)
-        val requestJson = prepareMessagePayload(body, conversationId)
+        accessTokenFuture.compose { accessToken ->
+            val future : Future<String> = Future.future()
+            logMessage(body, conversationId)
+            val requestJson = prepareMessagePayload(body, conversationId)
 
-        client.postAbs("${baseUrl}v3/conversations/$conversationId/activities").`as`(BodyCodec.jsonObject())
-                .putHeader("Authorization", "Bearer $accessToken")
-                .putHeader("Content-Type","application/json")
-                .sendJson(requestJson, {ar ->
-                    if (ar.succeeded()) {
-                        if (logger.isDebugEnabled) {
+            client.postAbs("${baseUrl}v3/conversations/$conversationId/activities").`as`(BodyCodec.jsonObject())
+                    .putHeader("Authorization", "Bearer $accessToken")
+                    .putHeader("Content-Type","application/json")
+                    .sendJson(requestJson, {ar ->
+                        if (ar.succeeded()) {
                             val json = ar.result().body()
-                            logger.debug("Message sent successfully. Message id: ${json.getString("id")}")
+                            val id = json.getString("id")
+                            if (logger.isDebugEnabled) {
+                                logger.debug("Message sent successfully. Message id: $id")
+                            }
+                            future.complete(id)
+                        } else {
+                            logger.error("Message sending failure.", ar.cause())
+                            future.fail(ar.cause())
                         }
-                    } else {
-                        logger.error("Message sending failure.", ar.cause())
-                    }
-                })
+                    })
+            return@compose future
+        }
     }
 
     private fun prepareMessagePayload(body: Message, conversationId: String): JsonObject? {
@@ -111,8 +114,6 @@ class MessageVerticle : AbstractVerticle() {
             logger.debug(sb.toString())
         }
     }
-
-    private fun getAccessToken() = vertx.sharedData().getLocalMap<String, String>("authentication")["accessToken"]
 
     private fun getConversationId(body: Message, receiver: String?): String {
         if (body.receiver != null && receiversByName[receiver] == null) {

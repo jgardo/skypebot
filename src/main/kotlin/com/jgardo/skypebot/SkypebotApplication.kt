@@ -1,6 +1,6 @@
 package com.jgardo.skypebot
 
-import com.jgardo.skypebot.authentication.AuthenticationVerticle
+import com.jgardo.skypebot.message.MessageAuthenticator
 import com.jgardo.skypebot.config.Config
 import com.jgardo.skypebot.message.MessageVerticle
 import com.jgardo.skypebot.server.ServerVerticle
@@ -30,11 +30,13 @@ fun main(args : Array<String>) {
 
     val messageTranslator = TextTranslator()
     val retriever = ConfigRetriever.create(vertx)
-    retriever.getConfig(messageTranslator)
+    retriever.getConfig(messageTranslator.configHandler)
 
-    vertx.deployVerticle(MessageVerticle(), {ar -> logStarted("MessageVerticle", ar)})
+    val messageAuthenticator = MessageAuthenticator(vertx)
+    retriever.getConfig(messageAuthenticator.configHandler)
+
+    vertx.deployVerticle(MessageVerticle(messageAuthenticator), {ar -> logStarted("MessageVerticle", ar)})
     vertx.deployVerticle(ServerVerticle(messageTranslator), { ar -> logStarted("ServerVerticle", ar)})
-    vertx.deployVerticle(AuthenticationVerticle(), {ar -> logStarted("AuthenticationVerticle", ar)})
 }
 
 private fun logAllPropertiesIfDebug(logger: Logger, vertx: Vertx) {
