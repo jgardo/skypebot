@@ -1,13 +1,13 @@
 package com.jgardo.skypebot.message
 
-import com.jgardo.skypebot.server.BaseRoute
 import com.jgardo.skypebot.message.model.Message
+import com.jgardo.skypebot.server.BaseRoute
 import io.vertx.core.Vertx
-import io.vertx.core.eventbus.MessageProducer
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.Router
+import javax.inject.Inject
 
-class MessageRoute(private val messageSender: MessageProducer<Message>) : BaseRoute() {
+class DirectMessageRoute @Inject constructor(private val messageSender: MessageSender) : BaseRoute() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 

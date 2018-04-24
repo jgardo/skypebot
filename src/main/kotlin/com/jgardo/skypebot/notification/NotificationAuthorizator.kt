@@ -11,13 +11,16 @@ import com.nimbusds.jose.util.Base64
 import com.nimbusds.jose.util.X509CertChainUtils
 import com.nimbusds.jwt.SignedJWT
 import io.vertx.core.Future
+import io.vertx.core.Vertx
 import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.codec.BodyCodec
 import net.minidev.json.JSONObject
 import java.util.*
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class NotificationAuthorizator(private val webClient: WebClient) {
+class NotificationAuthorizator @Inject constructor(vertx: Vertx) {
+    private val webClient: WebClient = WebClient.create(vertx)
 
     private val openIdMetadataCache = CacheBuilder.newBuilder()
             .expireAfterWrite(5L, TimeUnit.DAYS)

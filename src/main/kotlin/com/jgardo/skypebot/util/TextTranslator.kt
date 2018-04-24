@@ -1,16 +1,19 @@
 package com.jgardo.skypebot.util
 
 import com.jgardo.skypebot.config.Text
-import io.vertx.core.AsyncResult
-import io.vertx.core.Handler
+import io.vertx.config.ConfigRetriever
+import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
+import javax.inject.Inject
 
-class TextTranslator  {
-    val configHandler : Handler<AsyncResult<JsonObject>> = Handler {
-        ar -> config = ar.result()
-    }
-
+class TextTranslator @Inject constructor(vertx:Vertx)  {
     lateinit var config :JsonObject
+
+    init {
+        ConfigRetriever.create(vertx).getConfig({
+            ar -> config = ar.result()
+        })
+    }
 
     fun translate(text: Text) : String{
         return translate(text, HashMap())

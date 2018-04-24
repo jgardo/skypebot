@@ -1,29 +1,19 @@
 package com.jgardo.skypebot.notification
 
-import com.google.inject.Guice
-import com.jgardo.skypebot.server.BaseRoute
-import com.jgardo.skypebot.message.model.Message
+import com.google.inject.Inject
 import com.jgardo.skypebot.notification.model.Activity
-import com.jgardo.skypebot.util.TextTranslator
+import com.jgardo.skypebot.server.BaseRoute
 import io.vertx.core.Future
 import io.vertx.core.Vertx
-import io.vertx.core.eventbus.MessageProducer
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.Router
-import io.vertx.ext.web.client.WebClient
 
-class NotificationRoute(private val appId : String,
-                        private val messageSender : MessageProducer<Message>,
-                        private val textTranslator: TextTranslator) : BaseRoute() {
+class NotificationRoute @Inject constructor(private val authorizator : NotificationAuthorizator,
+                                            private val notificationController: NotificationController) : BaseRoute() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     override fun configure(router: Router, vertx: Vertx) {
-        val injector = Guice.createInjector(NotificationModule(appId, messageSender, textTranslator))
-
-        val webClient : WebClient = WebClient.create(vertx)
-        val authorizator = NotificationAuthorizator(webClient)
-
         router.post("/notification/*")
                 .configureRestRoutingWithBody()
                 .handler { ctx ->
@@ -40,7 +30,6 @@ class NotificationRoute(private val appId : String,
                             }
 
                             val activity = body.mapTo(Activity::class.java)
-                            val notificationController = injector.getInstance(NotificationController::class.java)
 
                             notificationController.notify(activity)
 

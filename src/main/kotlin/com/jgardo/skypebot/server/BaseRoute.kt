@@ -8,13 +8,15 @@ import io.vertx.ext.web.Route
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.handler.BodyHandler
 
-abstract class BaseRoute {
+interface Route {
+    fun configure(router: Router, vertx: Vertx)
+}
+
+abstract class BaseRoute : com.jgardo.skypebot.server.Route{
 
     private val APPLICATION_JSON = "application/json"
 
     private val logger = LoggerFactory.getLogger(javaClass::class.java)
-
-    abstract fun configure(router: Router, vertx: Vertx)
 
     protected fun Route.configureRestRoutingWithBody() : Route {
         return configureRestRouting(true)

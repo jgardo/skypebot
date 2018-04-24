@@ -12,8 +12,9 @@ import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
 import java.util.stream.Collectors
+import javax.inject.Inject
 
-class MessageVerticle(private val messageAuthenticator: MessageAuthenticator) : AbstractVerticle() {
+class MessageVerticle @Inject constructor(private val messageAuthenticator: MessageAuthenticator) : AbstractVerticle() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 

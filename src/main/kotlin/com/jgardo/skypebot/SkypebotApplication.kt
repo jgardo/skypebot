@@ -1,10 +1,15 @@
 package com.jgardo.skypebot
 
-import com.jgardo.skypebot.message.MessageAuthenticator
+import com.google.inject.Guice
+import com.google.inject.Injector
 import com.jgardo.skypebot.config.Config
+import com.jgardo.skypebot.message.DirectMessageModule
 import com.jgardo.skypebot.message.MessageVerticle
+import com.jgardo.skypebot.message.model.Message
+import com.jgardo.skypebot.notification.NotificationModule
+import com.jgardo.skypebot.server.ServerModule
 import com.jgardo.skypebot.server.ServerVerticle
-import com.jgardo.skypebot.util.TextTranslator
+import com.jgardo.skypebot.util.ObjectMessageCodec
 import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.AsyncResult
@@ -21,22 +26,30 @@ fun main(args : Array<String>) {
 
     val vertx = Vertx.vertx()!!
 
+    configureVertx(vertx)
+
     val logger = LoggerFactory.getLogger(SkypebotApplication::class.java)
     logAllPropertiesIfDebug(logger, vertx)
+
+    val notificationModule = NotificationModule()
+    val directMessageModule = DirectMessageModule()
+
+    val serverModule = ServerModule(setOf(notificationModule, directMessageModule), vertx)
+    val injector:Injector = Guice.createInjector(notificationModule, directMessageModule, serverModule)
+
+    val serverVerticle : ServerVerticle = injector.getInstance(ServerVerticle::class.java)
+    val messageVerticle : MessageVerticle = injector.getInstance(MessageVerticle::class.java)
 
     fun logStarted(name : String, ar:AsyncResult<String>) {
         VertxUtils.wrap(ar, {logger.info("Verticle $name started.")})
     }
 
-    val messageTranslator = TextTranslator()
-    val retriever = ConfigRetriever.create(vertx)
-    retriever.getConfig(messageTranslator.configHandler)
+    vertx.deployVerticle(messageVerticle, {ar -> logStarted("MessageVerticle", ar)})
+    vertx.deployVerticle(serverVerticle, { ar -> logStarted("ServerVerticle", ar)})
+}
 
-    val messageAuthenticator = MessageAuthenticator(vertx)
-    retriever.getConfig(messageAuthenticator.configHandler)
-
-    vertx.deployVerticle(MessageVerticle(messageAuthenticator), {ar -> logStarted("MessageVerticle", ar)})
-    vertx.deployVerticle(ServerVerticle(messageTranslator), { ar -> logStarted("ServerVerticle", ar)})
+private fun configureVertx(vertx: Vertx) {
+    vertx.eventBus().registerDefaultCodec(Message::class.java, ObjectMessageCodec(Message::class.java))
 }
 
 private fun logAllPropertiesIfDebug(logger: Logger, vertx: Vertx) {

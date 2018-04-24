@@ -1,12 +1,6 @@
 package com.jgardo.skypebot.server
 
 import com.jgardo.skypebot.config.Config
-import com.jgardo.skypebot.message.MessageBusEvent
-import com.jgardo.skypebot.message.MessageRoute
-import com.jgardo.skypebot.message.model.Message
-import com.jgardo.skypebot.notification.NotificationRoute
-import com.jgardo.skypebot.util.TextTranslator
-import com.jgardo.skypebot.util.ObjectMessageCodec
 import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.AbstractVerticle
@@ -14,8 +8,9 @@ import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.Router
+import javax.inject.Inject
 
-class ServerVerticle(private val textTranslator: TextTranslator) : AbstractVerticle(){
+class ServerVerticle @Inject constructor(private val baseRoutes :java.util.Set<BaseRoute>) : AbstractVerticle(){
     private val logger = LoggerFactory.getLogger(this::class.java)
     private lateinit var appId : String
 
@@ -43,13 +38,7 @@ class ServerVerticle(private val textTranslator: TextTranslator) : AbstractVerti
     private fun routes(vertx: Vertx) : Router {
         val router = Router.router(vertx)
 
-        val messageSender = vertx.eventBus()
-                .registerDefaultCodec(Message::class.java, ObjectMessageCodec(Message::class.java))
-                .sender<Message>(MessageBusEvent.SEND.eventName)
-                .exceptionHandler({ex->logger.error("Error when sending message", ex)})
-
-        NotificationRoute(appId, messageSender, textTranslator).configure(router, vertx)
-        MessageRoute(messageSender).configure(router,vertx)
+        baseRoutes.forEach {baseRoute -> (baseRoute as BaseRoute).configure(router, vertx)}
 
         return router
     }

@@ -1,26 +1,13 @@
 package com.jgardo.skypebot.notification
 
-import com.google.inject.AbstractModule
-import com.google.inject.TypeLiteral
-import com.google.inject.name.Names
-import com.jgardo.skypebot.message.model.Message
-import com.jgardo.skypebot.util.TextTranslator
-import io.vertx.core.eventbus.MessageProducer
+import com.google.inject.Key
+import com.google.inject.PrivateModule
+import com.jgardo.skypebot.server.BaseRoute
 
-class NotificationModule(private val appId : String,
-                         private val messageSender: MessageProducer<Message>,
-                         private val textTranslator: TextTranslator) : AbstractModule() {
+class NotificationModule() : PrivateModule() {
     override fun configure() {
-        bind(String::class.java)
-                .annotatedWith(Names.named("appId"))
-                .toInstance(appId)
+        val key = Key.get(NotificationRoute::class.java)
 
-        bind(MessageSenderTypeLiteral())
-                .annotatedWith(Names.named("messageSender"))
-                .toInstance(messageSender)
-        bind(TextTranslator::class.java)
-                .toInstance(textTranslator)
+        bind(BaseRoute::class.java).to(key)
     }
-
-    private class MessageSenderTypeLiteral : TypeLiteral<MessageProducer<Message>>(){}
 }
