@@ -24,9 +24,6 @@ class ServerModule(private val modules : Set<Module>, private val vertx: Vertx) 
             multibinder.addBinding().to(element.linkedKey)
         }
 
-        multibinder.addBinding().to(NotificationRoute::class.java)
-        multibinder.addBinding().to(DirectMessageRoute::class.java)
-
         bind(Vertx::class.java).toInstance(vertx)
 
         bind(ServerVerticle::class.java)
