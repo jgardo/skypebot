@@ -1,7 +1,7 @@
 package com.jgardo.skypebot.message
 
 import com.google.common.cache.CacheBuilder
-import com.jgardo.skypebot.config.Config
+import com.jgardo.skypebot.config.BasicConfig
 import com.jgardo.skypebot.config.ConfigService
 import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.core.Future
@@ -23,8 +23,8 @@ class MessageAuthenticator @Inject constructor(private val vertx:Vertx, private 
     private val authenticationForm = MultiMap.caseInsensitiveMultiMap()
 
     fun getAccessToken() : Future<String> {
-        val clientId = configService.getString(Config.AUTHENTICATION_CLIENT_ID)?: VertxUtils.missingConfig(Config.AUTHENTICATION_CLIENT_ID)
-        val clientSecret = configService.getString(Config.AUTHENTICATION_CLIENT_SECRET)?: VertxUtils.missingConfig(Config.AUTHENTICATION_CLIENT_SECRET)
+        val clientId = configService.getString(BasicConfig.AUTHENTICATION_CLIENT_ID)?: VertxUtils.missingConfig(BasicConfig.AUTHENTICATION_CLIENT_ID)
+        val clientSecret = configService.getString(BasicConfig.AUTHENTICATION_CLIENT_SECRET)?: VertxUtils.missingConfig(BasicConfig.AUTHENTICATION_CLIENT_SECRET)
         authenticationForm.set("grant_type", "client_credentials")
                 .set("client_id", clientId) //MICROSOFT-APP-ID
                 .set("client_secret", clientSecret) //MICROSOFT-APP-PASSWORD

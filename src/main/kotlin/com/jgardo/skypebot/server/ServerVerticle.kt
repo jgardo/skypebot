@@ -1,6 +1,6 @@
 package com.jgardo.skypebot.server
 
-import com.jgardo.skypebot.config.Config
+import com.jgardo.skypebot.config.BasicConfig
 import com.jgardo.skypebot.util.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.AbstractVerticle
@@ -18,8 +18,8 @@ class ServerVerticle @Inject constructor(private val baseRoutes :java.util.Set<B
         val config = ConfigRetriever.create(vertx)
         config.getConfig({ ar ->
             VertxUtils.wrap(ar, { json ->
-                val port = json.getInteger(Config.SERVER_PORT.configName)?: 8080
-                appId = json.getString(Config.APP_ID.configName)!!
+                val port = json.getInteger(BasicConfig.SERVER_PORT.configName)?: 8080
+                appId = json.getString(BasicConfig.APP_ID.configName)!!
 
                 vertx
                         .createHttpServer()

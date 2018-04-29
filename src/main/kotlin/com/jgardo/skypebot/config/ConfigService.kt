@@ -3,21 +3,24 @@ package com.jgardo.skypebot.config
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.Vertx
 import io.vertx.kotlin.core.json.get
-import java.util.*
 import java.util.stream.Collectors
 import javax.inject.Inject
 
-class ConfigService @Inject constructor(vertx: Vertx) {
+class ConfigService @Inject constructor(vertx: Vertx, configProviders : java.util.Set<ConfigProvider>) {
 
     private lateinit var configMap : Map<Config, Any>
 
     init {
         ConfigRetriever.create(vertx).getConfig({
             ar -> configMap =
-                Arrays.stream(Config.values())
-                        .filter({it != null})
-                        .filter({ ar.result().containsKey(it.configName)})
+                configProviders.stream()
+                        .flatMap {
+                            it.configs.stream()
+                                    .filter({ it != null })
+                                    .filter({ ar.result().containsKey(it.configName) })
+                        }
                         .collect(Collectors.toMap({it}, { ar.result()[it.configName] }))
+
         })
     }
 

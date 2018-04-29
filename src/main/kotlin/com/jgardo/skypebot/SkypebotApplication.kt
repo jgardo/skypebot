@@ -4,7 +4,7 @@ import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.PrivateModule
 import com.google.inject.Module
-import com.jgardo.skypebot.config.Config
+import com.jgardo.skypebot.config.BasicConfig
 import com.jgardo.skypebot.message.DirectMessageModule
 import com.jgardo.skypebot.message.MessageVerticle
 import com.jgardo.skypebot.message.model.Message
@@ -73,7 +73,7 @@ class SkypebotApplication(private vararg val modules:PrivateModule) {
                     val res = json.map
                     val shortened = res.mapValues { (key,value) ->
                         when {
-                            Config.values()
+                            BasicConfig.values()
                                     .filter { e -> e.sensitive }
                                     .map { e -> e.configName }
                                     .contains(key) -> return@mapValues VertxUtils.shortenSensitiveString(value as String)

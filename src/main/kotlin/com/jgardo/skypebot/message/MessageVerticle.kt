@@ -1,6 +1,6 @@
 package com.jgardo.skypebot.message
 
-import com.jgardo.skypebot.config.Config
+import com.jgardo.skypebot.config.BasicConfig
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.*
 import io.vertx.core.eventbus.Message as VertxMessage
@@ -33,8 +33,8 @@ class MessageVerticle @Inject constructor(private val messageAuthenticator: Mess
     private fun initializeConfig(retriever: ConfigRetriever, fut: Future<Void>) {
         retriever.getConfig({ ar ->
             VertxUtils.wrap(ar, { json ->
-                appId = json.getString(Config.APP_ID.configName)?: VertxUtils.missingConfig(Config.APP_ID)
-                baseUrl = json.getString(Config.BASE_URL.configName)?: VertxUtils.missingConfig(Config.BASE_URL)
+                appId = json.getString(BasicConfig.APP_ID.configName)?: VertxUtils.missingConfig(BasicConfig.APP_ID)
+                baseUrl = json.getString(BasicConfig.BASE_URL.configName)?: VertxUtils.missingConfig(BasicConfig.BASE_URL)
                 receiversByName = prepareReceivers(json)
                 if (receiversByName.isEmpty()) {
                     logger.warn(IllegalStateException("There is no receiver registered. It's necessery to send message addressing by logical name."))
