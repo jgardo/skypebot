@@ -7,12 +7,11 @@ import com.google.inject.Module
 import com.jgardo.skypebot.config.BasicConfig
 import com.jgardo.skypebot.message.DirectMessageModule
 import com.jgardo.skypebot.message.MessageVerticle
-import com.jgardo.skypebot.message.model.Message
 import com.jgardo.skypebot.notification.NotificationModule
 import com.jgardo.skypebot.server.ServerModule
 import com.jgardo.skypebot.server.ServerVerticle
-import com.jgardo.skypebot.util.ObjectMessageCodec
-import com.jgardo.skypebot.util.VertxUtils
+import com.jgardo.skypebot.vertx.VertxConfigurationService
+import com.jgardo.skypebot.vertx.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.AsyncResult
 import io.vertx.core.Vertx
@@ -31,13 +30,15 @@ class SkypebotApplication(private vararg val modules:PrivateModule) {
         val allModules: MutableCollection<Module> = prepareModules(vertx)
         val injector:Injector = Guice.createInjector(allModules.asIterable())
 
+        val vertxConfigurationService = injector.getInstance(VertxConfigurationService::class.java)
+        vertxConfigurationService.configure()
+
         deployVerticles(injector, vertx)
     }
 
     private fun createVertx() : Vertx {
         val vertx = Vertx.vertx()!!
 
-        vertx.eventBus().registerDefaultCodec(Message::class.java, ObjectMessageCodec(Message::class.java))
         logAllPropertiesIfDebug(vertx)
 
         return vertx

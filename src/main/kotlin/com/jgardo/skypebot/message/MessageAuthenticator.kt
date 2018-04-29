@@ -3,7 +3,7 @@ package com.jgardo.skypebot.message
 import com.google.common.cache.CacheBuilder
 import com.jgardo.skypebot.config.BasicConfig
 import com.jgardo.skypebot.config.ConfigService
-import com.jgardo.skypebot.util.VertxUtils
+import com.jgardo.skypebot.vertx.VertxUtils
 import io.vertx.core.Future
 import io.vertx.core.MultiMap
 import io.vertx.core.Vertx

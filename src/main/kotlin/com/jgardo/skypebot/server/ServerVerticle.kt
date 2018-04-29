@@ -1,7 +1,7 @@
 package com.jgardo.skypebot.server
 
 import com.jgardo.skypebot.config.BasicConfig
-import com.jgardo.skypebot.util.VertxUtils
+import com.jgardo.skypebot.vertx.VertxUtils
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Future

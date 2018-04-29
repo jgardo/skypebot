@@ -3,7 +3,7 @@ package com.jgardo.skypebot.notification
 import com.google.common.cache.CacheBuilder
 import com.jgardo.skypebot.notification.authorization.model.OpenIdMetadataDocument
 import com.jgardo.skypebot.notification.authorization.model.SigningKeysWrapper
-import com.jgardo.skypebot.util.VertxUtils
+import com.jgardo.skypebot.vertx.VertxUtils
 import com.nimbusds.jose.JWSVerifier
 import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.RSAKey

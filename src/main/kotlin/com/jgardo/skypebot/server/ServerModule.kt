@@ -10,6 +10,7 @@ import com.google.inject.spi.LinkedKeyBinding
 import com.google.inject.spi.PrivateElements
 import com.jgardo.skypebot.config.BaseConfigProvider
 import com.jgardo.skypebot.config.ConfigProvider
+import com.jgardo.skypebot.vertx.VertxConfigurer
 import io.vertx.core.Vertx
 
 
@@ -17,27 +18,28 @@ class ServerModule(private val modules : Set<Module>, private val vertx: Vertx) 
     override fun configure() {
         val routeBindings = Multibinder.newSetBinder(binder(), Key.get(BaseRoute::class.java))
         val configBindings = Multibinder.newSetBinder(binder(), Key.get(ConfigProvider::class.java))
+        val vertxConfigurerBindings = Multibinder.newSetBinder(binder(), Key.get(VertxConfigurer::class.java))
         for (module in modules) {
             val elements = Elements.getElements(module).find { it is PrivateElements } as PrivateElements
-            val baseRoute = elements.elements
-                    .find { it is LinkedKeyBinding<*>
-                            && BaseRoute::class.java.isAssignableFrom(it.linkedKey.typeLiteral.rawType) }
-                    as LinkedBindingImpl<out BaseRoute>?
-            if (baseRoute != null) {
-                routeBindings.addBinding().to(baseRoute.linkedKey)
-            }
-
-            val configProvider = elements.elements
-                    .find { it is LinkedKeyBinding<*>
-                            && ConfigProvider::class.java.isAssignableFrom(it.linkedKey.typeLiteral.rawType) }
-                    as LinkedBindingImpl<out ConfigProvider>?
-            if (configProvider != null) {
-                configBindings.addBinding().to(configProvider.linkedKey)
-            }
+            registerClassInModule(elements, routeBindings, BaseRoute::class.java)
+            registerClassInModule(elements, configBindings, ConfigProvider::class.java)
+            registerClassInModule(elements, vertxConfigurerBindings, VertxConfigurer::class.java)
         }
         configBindings.addBinding().to(Key.get(BaseConfigProvider::class.java))
 
         bind(Vertx::class.java).toInstance(vertx)
         bind(ServerVerticle::class.java)
+    }
+
+    private fun <T> registerClassInModule(elements: PrivateElements, multiBindings: Multibinder<T>, clazz : Class<T> ) {
+        val element = elements.elements
+                .find {
+                    it is LinkedKeyBinding<*>
+                            && clazz.isAssignableFrom(it.linkedKey.typeLiteral.rawType)
+                }
+                as LinkedBindingImpl<out T>?
+        if (element != null) {
+            multiBindings.addBinding().to(element.linkedKey)
+        }
     }
 }

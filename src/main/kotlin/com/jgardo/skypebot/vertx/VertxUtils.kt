@@ -1,4 +1,4 @@
-package com.jgardo.skypebot.util
+package com.jgardo.skypebot.vertx
 
 import com.jgardo.skypebot.config.Config
 import io.vertx.core.AsyncResult

@@ -8,7 +8,7 @@ import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.codec.BodyCodec
 import com.jgardo.skypebot.message.model.Message
 import com.jgardo.skypebot.message.exception.ReceiverNotFoundException
-import com.jgardo.skypebot.util.VertxUtils
+import com.jgardo.skypebot.vertx.VertxUtils
 import io.vertx.core.json.JsonObject
 import io.vertx.core.logging.LoggerFactory
 import java.util.stream.Collectors
