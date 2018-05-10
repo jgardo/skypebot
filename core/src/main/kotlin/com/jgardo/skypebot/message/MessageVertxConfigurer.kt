@@ -5,7 +5,7 @@ import com.jgardo.skypebot.util.ObjectMessageCodec
 import com.jgardo.skypebot.vertx.VertxConfigurer
 import io.vertx.core.Vertx
 
-class DirectMessageVertxConfigurer : VertxConfigurer {
+class MessageVertxConfigurer : VertxConfigurer {
     override fun configure(vertx: Vertx) {
         vertx.eventBus().registerDefaultCodec(Message::class.java, ObjectMessageCodec(Message::class.java))
     }

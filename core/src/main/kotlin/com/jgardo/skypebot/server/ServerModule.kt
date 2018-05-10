@@ -10,6 +10,7 @@ import com.google.inject.spi.LinkedKeyBinding
 import com.google.inject.spi.PrivateElements
 import com.jgardo.skypebot.config.BaseConfigProvider
 import com.jgardo.skypebot.config.ConfigProvider
+import com.jgardo.skypebot.message.MessageVertxConfigurer
 import com.jgardo.skypebot.vertx.VertxConfigurer
 import io.vertx.core.Vertx
 
@@ -29,6 +30,8 @@ class ServerModule(private val modules : Set<Module>, private val vertx: Vertx) 
 
         bind(Vertx::class.java).toInstance(vertx)
         bind(ServerVerticle::class.java)
+
+        vertxConfigurerBindings .addBinding().to(Key.get(MessageVertxConfigurer::class.java))
     }
 
     private fun <T> registerClassInModule(elements: PrivateElements, multiBindings: Multibinder<T>, clazz : Class<T> ) {

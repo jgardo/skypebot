@@ -1,7 +1,6 @@
 package com.jgardo.skypebot.notification.authorization
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jgardo.skypebot.notification.authorization.model.SigningKeysWrapper
 import com.nimbusds.jose.JWSVerifier
 import com.nimbusds.jose.crypto.RSASSAVerifier
 import com.nimbusds.jose.jwk.RSAKey

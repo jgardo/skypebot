@@ -11,6 +11,7 @@
         <module>skype-notification</module>
         <module>direct-message</module>
         <module>example</module>
+        <module>example-greeting</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -42,6 +43,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
+                <version>1.2.41</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -129,5 +131,13 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>1.2.41</version>
+        </dependency>
+    </dependencies>
 
 </project>

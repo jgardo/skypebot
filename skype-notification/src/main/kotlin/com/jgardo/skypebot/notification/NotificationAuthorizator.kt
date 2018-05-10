@@ -1,8 +1,8 @@
 package com.jgardo.skypebot.notification
 
 import com.google.common.cache.CacheBuilder
-import com.jgardo.skypebot.notification.authorization.model.OpenIdMetadataDocument
-import com.jgardo.skypebot.notification.authorization.model.SigningKeysWrapper
+import com.jgardo.skypebot.notification.authorization.OpenIdMetadataDocument
+import com.jgardo.skypebot.notification.authorization.SigningKeysWrapper
 import com.jgardo.skypebot.vertx.VertxUtils
 import com.nimbusds.jose.JWSVerifier
 import com.nimbusds.jose.crypto.RSASSAVerifier

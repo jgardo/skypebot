@@ -2,14 +2,14 @@ package com.jgardo.skypebot.notification
 
 import com.google.inject.Inject
 import com.jgardo.skypebot.notification.model.Activity
+import com.jgardo.skypebot.notification.model.Event
 import com.jgardo.skypebot.server.BaseRoute
 import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.logging.LoggerFactory
 import io.vertx.ext.web.Router
 
-class NotificationRoute @Inject constructor(private val authorizator : NotificationAuthorizator,
-                                            private val notificationController: NotificationController) : BaseRoute() {
+class NotificationRoute @Inject constructor(private val authorizator : NotificationAuthorizator) : BaseRoute() {
 
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -31,7 +31,7 @@ class NotificationRoute @Inject constructor(private val authorizator : Notificat
 
                             val activity = body.mapTo(Activity::class.java)
 
-                            notificationController.notify(activity)
+                            vertx.eventBus().send(Event.NOTIFICATION.eventName, activity)
 
                             ctx.response().end("<h1>Notified!</h1>")
                             return@compose Future.succeededFuture<Void>()

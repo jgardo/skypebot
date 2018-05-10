@@ -1,4 +1,4 @@
-package com.jgardo.skypebot.notification.authorization.model
+package com.jgardo.skypebot.notification.authorization
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
