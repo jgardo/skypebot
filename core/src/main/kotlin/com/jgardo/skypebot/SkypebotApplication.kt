@@ -5,9 +5,7 @@ import com.google.inject.Injector
 import com.google.inject.PrivateModule
 import com.google.inject.Module
 import com.jgardo.skypebot.config.BasicConfig
-import com.jgardo.skypebot.message.DirectMessageModule
 import com.jgardo.skypebot.message.MessageVerticle
-import com.jgardo.skypebot.notification.NotificationModule
 import com.jgardo.skypebot.server.ServerModule
 import com.jgardo.skypebot.server.ServerVerticle
 import com.jgardo.skypebot.vertx.VertxConfigurationService
@@ -93,11 +91,4 @@ class SkypebotApplication(private vararg val modules:PrivateModule) {
             })
         }
     }
-}
-
-fun main(args : Array<String>) {
-    SkypebotApplication(
-            NotificationModule(),
-            DirectMessageModule()
-    ).run()
 }
