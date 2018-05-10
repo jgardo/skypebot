@@ -28,8 +28,8 @@ class SkypebotApplication(private vararg val modules:PrivateModule) {
         val allModules: MutableCollection<Module> = prepareModules(vertx)
         val injector:Injector = Guice.createInjector(allModules.asIterable())
 
-        val vertxConfigurationService = injector.getInstance(VertxConfigurationService::class.java)
-        vertxConfigurationService.configure()
+        injector.getInstance(VertxConfigurationService::class.java)
+                .configure()
 
         deployVerticles(injector, vertx)
     }
