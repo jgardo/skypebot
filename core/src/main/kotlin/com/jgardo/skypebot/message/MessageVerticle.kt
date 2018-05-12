@@ -37,7 +37,7 @@ class MessageVerticle @Inject constructor(private val messageAuthenticator: Mess
                 baseUrl = json.getString(BasicConfig.BASE_URL.configName)?: "https://smba.trafficmanager.net/apis/"
                 receiversByName = prepareReceivers(json)
                 if (receiversByName.isEmpty()) {
-                    logger.warn(IllegalStateException("There is no receiver registered. It's necessery to send message addressing by logical name."))
+                    logger.warn("There is no receiver registered. It's necessery to send message addressing by logical name.")
                 }
                 logOnStartup()
                 fut.complete()

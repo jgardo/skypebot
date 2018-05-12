@@ -22,10 +22,8 @@ class NotificationListener @Inject constructor(
 
     private fun notify(activity: Activity) {
         val appId = configService.getString(BasicConfig.APP_ID)
-        if (activity.type == "conversationUpdate"
-                && activity.membersAdded != null
-                && activity.membersAdded!!.isNotEmpty()
-                && activity.membersAdded!!.first().id.contains(appId!!)) {
+        if (wasAddedToPrivateConversation(activity)
+                || wasAddedToGroup(activity, appId)) {
             val conversationId = activity.conversation.id
             val text = textTranslator.translate(Text.BOTS_INVITATION_ON_GROUP, hashMapOf("conversationId" to conversationId))
             val message = Message(conversationId = conversationId, message = text)
@@ -33,4 +31,17 @@ class NotificationListener @Inject constructor(
             messageSender.send(message)
         }
     }
+
+    private fun wasAddedToGroup(activity: Activity, appId: String?): Boolean {
+        return (activity.type == "conversationUpdate"
+                && activity.membersAdded != null
+                && activity.membersAdded!!.isNotEmpty()
+                && activity.membersAdded!!.first().id.contains(appId!!))
+    }
+
+    private fun wasAddedToPrivateConversation(activity: Activity): Boolean {
+        return (activity.type == "contactRelationUpdate"
+                && activity.action == "add")
+    }
+
 }
