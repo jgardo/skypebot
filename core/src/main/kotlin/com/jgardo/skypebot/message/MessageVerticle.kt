@@ -34,7 +34,7 @@ class MessageVerticle @Inject constructor(private val messageAuthenticator: Mess
         retriever.getConfig({ ar ->
             VertxUtils.wrap(ar, { json ->
                 appId = json.getString(BasicConfig.APP_ID.configName)?: VertxUtils.missingConfig(BasicConfig.APP_ID)
-                baseUrl = json.getString(BasicConfig.BASE_URL.configName)?: VertxUtils.missingConfig(BasicConfig.BASE_URL)
+                baseUrl = json.getString(BasicConfig.BASE_URL.configName)?: "https://smba.trafficmanager.net/apis/"
                 receiversByName = prepareReceivers(json)
                 if (receiversByName.isEmpty()) {
                     logger.warn(IllegalStateException("There is no receiver registered. It's necessery to send message addressing by logical name."))
