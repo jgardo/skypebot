@@ -16,8 +16,11 @@ class NotificationListener @Inject constructor(
         private val messageSender: MessageSender,
         private val textTranslator: TextTranslator) : VertxConfigurer {
 
+    lateinit var vertx : Vertx
+
     override fun configure(vertx: Vertx) {
         vertx.eventBus().consumer<Activity>(Event.NOTIFICATION.eventName, { activity -> notify(activity.body())})
+        this.vertx = vertx
     }
 
     private fun notify(activity: Activity) {
@@ -28,14 +31,15 @@ class NotificationListener @Inject constructor(
             val text = textTranslator.translate(Text.BOTS_INVITATION_ON_GROUP, hashMapOf("conversationId" to conversationId))
             val message = Message(conversationId = conversationId, message = text)
 
-            messageSender.send(message)
+            vertx.setTimer(4000, {
+                messageSender.send(message)
+            })
         }
     }
 
     private fun wasAddedToGroup(activity: Activity, appId: String?): Boolean {
         return (activity.type == "conversationUpdate"
-                && activity.membersAdded != null
-                && activity.membersAdded!!.isNotEmpty()
+                && activity.membersAdded?.isNotEmpty() ?: false
                 && activity.membersAdded!!.first().id.contains(appId!!))
     }
 
