@@ -25,7 +25,7 @@ class NotificationListener @Inject constructor(
         if (activity.type == "conversationUpdate"
                 && activity.membersAdded != null
                 && activity.membersAdded!!.isNotEmpty()
-                && activity.membersAdded!!.first().id == appId) {
+                && activity.membersAdded!!.first().id.contains(appId!!)) {
             val conversationId = activity.conversation.id
             val text = textTranslator.translate(Text.BOTS_INVITATION_ON_GROUP, hashMapOf("conversationId" to conversationId))
             val message = Message(conversationId = conversationId, message = text)

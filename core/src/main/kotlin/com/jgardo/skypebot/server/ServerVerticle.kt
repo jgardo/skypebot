@@ -12,14 +12,12 @@ import javax.inject.Inject
 
 class ServerVerticle @Inject constructor(private val baseRoutes :java.util.Set<BaseRoute>) : AbstractVerticle(){
     private val logger = LoggerFactory.getLogger(this::class.java)
-    private lateinit var appId : String
 
     override fun start(fut: Future<Void>) {
         val config = ConfigRetriever.create(vertx)
         config.getConfig({ ar ->
             VertxUtils.wrap(ar, { json ->
                 val port = json.getInteger(BasicConfig.SERVER_PORT.configName)?: 8080
-                appId = json.getString(BasicConfig.APP_ID.configName)!!
 
                 vertx
                         .createHttpServer()
